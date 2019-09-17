@@ -1,0 +1,68 @@
+const http = require('http');
+const express = require('express');
+const app = express();
+var port = 4500;
+var hostName = "localhost";
+var fs = require('fs');
+
+const server = http.createServer(app);
+app.use(function (req, res, next) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+  res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
+  res.setHeader('Access-Control-Allow-Credentials', true);
+  next();
+});
+
+
+// for login authentication************************************
+app.get("/login", (request, response) => {
+  var user = request.body.username;
+  var pass = request.body.password;
+  // res.status(200).send({add:data1+data2});
+  console.log("name : ",user ," /pass : ",pass);
+  fs.readFile('./database.json', function (err, data) {
+    var flag = false;
+    var ArrayObject = JSON.parse(data);
+    //response.status(200).send(ArrayObject);
+    //ArrayObject.push(request.body);
+    for (var i = 0; i < ArrayObject.length; i++) {
+      if (ArrayObject[i].password === pass && ArrayObject[i].userName === user) {
+        flag = true;
+        response.status(200).send("success");
+      }
+    }
+    if (flag == false) {
+      response.status(201).send("Failed");
+    }
+  });
+  //response.end();
+});
+
+
+// for updating user details(Registration) in database.json********************
+app.post('/signup', (request, response) => {
+  console.log(Array);
+  fs.readFile('./database.json', function (err, data) {
+  var ArrayObject = JSON.parse(data);
+  ArrayObject.push(request.body);
+  // console.log(request.body);
+  console.log(ArrayObject);
+  var userDetails = JSON.stringify(ArrayObject)
+  if (fs.existsSync('./database.json')) {
+      fs.writeFile('./database.json', userDetails, 'utf8', (err) => {
+      if (err) {
+        response.status(201).send("failed");
+      }
+      else {
+        response.status(200).send("success");
+      }
+  })}
+  else {
+    }
+  });
+  });
+
+server.listen(port, hostName, () => {
+  console.log("Page is hosted in " + port + ' in ' + hostName);
+});
